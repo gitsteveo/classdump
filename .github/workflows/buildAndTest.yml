@@ -19,7 +19,8 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew runMainTest
-          cp -a build/libs/. generated/
+      - name: copy jars
+        run: cp -a build/libs/. generated/
   build_5:
     runs-on: ubuntu-latest
     steps:
@@ -38,13 +39,13 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew runJava5Test
-          cp -a build/libs/. generated/
+      - name: copy jars
+        run: cp -a build/libs/. generated/
   upload:
     needs: [build_latest, build_5]
     runs-on: ubuntu-latest
     steps:
       - name: upload build artifacts
-        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           path: generated/
