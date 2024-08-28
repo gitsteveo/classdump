@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+}
+
+group = 'net.anawesomguy'
+version = '1.0'
+
+sourceSets {
+    java5
+}
+
+compileJava5Java {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_5
+}
+
+tasks.register('java5Jar', Jar) {
+    dependsOn compileJava5Java, processJava5Resources
+    from sourceSets.java5.output
+    archiveClassifier = 'java5'
+}
+
+tasks.withType(Jar).configureEach {
+    manifest.attributes(['Premain-Class': 'net.anawesomguy.clsdump.Dumper'])
+    from 'LICENSE'
+}
+
+tasks.register('runMainTest', JavaExec) {
+    dependsOn jar
+    group 'verification'
+    classpath sourceSets.test.runtimeClasspath
+    jvmArgs '-javaagent:' + jar.archiveFile.get() + '=debug'
+    mainClass = 'net.anawesomguy.clsdump.test.Main'
+    workingDir 'build/test-main/'
+    workingDir.deleteDir()
+    workingDir.mkdirs()
+}
+
+tasks.register('runJava5Test', JavaExec) {
+    dependsOn java5Jar
+    group 'verification'
+    classpath sourceSets.test.runtimeClasspath
+    jvmArgs '-javaagent:' + java5Jar.archiveFile.get() + '=debug'
+    mainClass = 'net.anawesomguy.clsdump.test.Main'
+    workingDir 'build/test-java5/'
+    workingDir.deleteDir()
+    workingDir.mkdirs()
+}
+
+tasks.register('runAllTests') {
+    group 'verification'
+    dependsOn runMainTest, runJava5Test
+}
