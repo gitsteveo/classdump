@@ -16,7 +16,9 @@ jobs:
           distribution: 'temurin'
           java-version: 21
       - name: Test
-        run: ./gradlew runMainTest
+        run: |
+          chmod +x ./gradlew
+          ./gradlew runMainTest
   build_5:
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +38,7 @@ jobs:
           chmod +x ./gradlew
           ./gradlew runJava5Test
   upload:
+    needs: [build_latest, build_5]
     runs-on: ubuntu-latest
     steps:
       - name: upload build artifacts
