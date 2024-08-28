@@ -47,7 +47,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          path: generated
+          path: generated/
       - name: delete generated
         continue-on-error: true
         run: rm -r generated/
