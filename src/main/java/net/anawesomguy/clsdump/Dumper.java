@@ -39,7 +39,7 @@ public final class Dumper implements ClassFileTransformer {
     }
 
     public static void premain(String args, Instrumentation inst) {
-        System.out.println("Initializing ClassDump at " + DIR.toAbsolutePath());
+        System.out.println("Initializing Class Dump at " + DIR.toAbsolutePath());
         inst.addTransformer(new Dumper(args != null && args.equalsIgnoreCase("debug")));
     }
 
