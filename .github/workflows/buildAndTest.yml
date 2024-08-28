@@ -19,8 +19,12 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew runMainTest
-      - name: copy jars
-        run: cp -a build/libs/. generated/
+      - name: upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          with: normal
+          path: build/libs/*.jar
+          compression-level: 1
   build_5:
     runs-on: ubuntu-latest
     steps:
@@ -39,16 +43,9 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew runJava5Test
-      - name: copy jars
-        run: cp -a build/libs/. generated/
-  upload:
-    needs: [build_latest, build_5]
-    runs-on: ubuntu-latest
-    steps:
       - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: generated/
-      - name: delete generated
-        continue-on-error: true
-        run: rm -r generated/
+          name: java-5
+          path: build/libs/*.jar
+          compression-level: 1
