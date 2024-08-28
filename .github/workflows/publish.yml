@@ -1,6 +1,19 @@
-name: Build and Test
+name: Publish Jars
 
-on: [pull_request, push]
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'The name of the release'
+        required: true
+        type: string
+      release_body:
+        description: 'The description of the release'
+        required: true
+        type: string
 
 jobs:
   build_latest:
@@ -43,10 +56,26 @@ jobs:
       - name: run test
         run: |
           chmod +x ./gradlew
-          ./gradlew runJava5Test
+          ./gradlew java5Jar
       - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: java-5
           path: build/libs/*.jar
           compression-level: 1
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+      - name: create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ inputs.release_name }}
+          body: ${{ inputs.release_body }}
+          files: ${{ ls -1 }}
+          tag_name: ${{ ls -AU artifacts | head -1 }}
