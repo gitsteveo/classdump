@@ -28,10 +28,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 21
-      - name: Test
+      - name: build
         run: |
           chmod +x ./gradlew
-          ./gradlew runMainTest
+          ./gradlew build
       - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -53,7 +53,7 @@ jobs:
           java-version: 8
       - name: setup gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: run test
+      - name: build
         run: |
           chmod +x ./gradlew
           ./gradlew java5Jar
@@ -65,6 +65,7 @@ jobs:
           compression-level: 1
 
   publish:
+    needs: [build_latest, build_5]
     runs-on: ubuntu-latest
     steps:
       - name: download artifacts
@@ -72,10 +73,14 @@ jobs:
         with:
           path: artifacts/
           merge-multiple: true
+      - id: names
+        run: |
+          echo "FILES=$( ls -1 )" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$( ls -AU artifacts | head -1 )" >> $GITHUB_OUTPUT
       - name: create release
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ inputs.release_name }}
           body: ${{ inputs.release_body }}
-          files: $( ls -1 )
-          tag_name: $( ls -AU artifacts | head -1 )
+          files: ${{ steps.names.outputs.FILES }}
+          tag_name: ${{ steps.names.outputs.TAG_NAME }}

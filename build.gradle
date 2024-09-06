@@ -7,6 +7,10 @@ version = '1.0'
 
 sourceSets {
     java5
+    test {
+        compileClasspath -= sourceSets.main.compileClasspath
+        runtimeClasspath -= sourceSets.main.runtimeClasspath
+    }
 }
 
 compileJava5Java {
@@ -14,6 +18,7 @@ compileJava5Java {
 }
 
 tasks.register('java5Jar', Jar) {
+    group 'build'
     dependsOn compileJava5Java, processJava5Resources
     from sourceSets.java5.output
     archiveClassifier = 'java5'
@@ -38,6 +43,7 @@ tasks.register('runMainTest', JavaExec) {
 tasks.register('runJava5Test', JavaExec) {
     dependsOn java5Jar
     group 'verification'
+    println sourceSets.test.runtimeClasspath
     classpath sourceSets.test.runtimeClasspath
     jvmArgs '-javaagent:' + java5Jar.archiveFile.get() + '=debug'
     mainClass = 'net.anawesomguy.clsdump.test.Main'
