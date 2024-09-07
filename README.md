@@ -1,11 +1,13 @@
 # Class Dump
 
-A tiny Java agent to dump all classes loaded by the JVM, made using the instrumentation API.
+A tiny Java agent to dump all classes loaded by the JVM (excluding arrays), made using the instrumentation API.
 
-There are two "version" of this project: one is the normal one (can be compiled with Java 7+, uses NIO),
+There are two "versions" of this project: one is the normal one (can be compiled with Java 7+, uses NIO),
 and the other one, which is compatible with all Java versions 5 and above.
 
 To use, simply add `-javaagent:path/to/classdump-version.jar` as a JVM arg. (adding `=debug` at the end enables logging each class dumped)
+
+Classes are dumped to `_classdump`, relative to the working directory.
 
 ### Building
 
