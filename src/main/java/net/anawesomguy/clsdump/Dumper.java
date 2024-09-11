@@ -42,8 +42,8 @@ public final class Dumper implements ClassFileTransformer {
 
     public static void premain(String args, Instrumentation inst) {
         System.out.println("Dump classes to " + DIR.toAbsolutePath());
-        boolean b = "debug".equalsIgnoreCase(args);
-        inst.addTransformer(new Dumper(b));
+        boolean debug = "debug".equalsIgnoreCase(args);
+        inst.addTransformer(new Dumper(debug));
 
         //already loaded classes
         for (Class<?> c : inst.getAllLoadedClasses()) {
@@ -55,15 +55,15 @@ public final class Dumper implements ClassFileTransformer {
                 InputStream in = c.getResourceAsStream(cls.substring(name.lastIndexOf('/') + 1));
                 if (in != null) {
                     try {
-                        Path p = DIR.resolve(cls);
-                        Files.createDirectories(p.getParent());
-                        Files.copy(in, p, StandardCopyOption.REPLACE_EXISTING);
+                        Path path = DIR.resolve(cls);
+                        Files.createDirectories(path.getParent());
+                        Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
                     } finally {
                         in.close();
                     }
-                    if (b)
+                    if (debug)
                         System.out.println("Dumped class " + name);
-                } else if (b)
+                } else if (debug)
                     System.out.println("Couldn't get bytes for " + name);
             } catch (Exception e) {
                 System.err.println("Unable to dump class " + name);
@@ -73,11 +73,11 @@ public final class Dumper implements ClassFileTransformer {
         }
     }
 
-    public byte[] transform(ClassLoader cl, String name, Class<?> c, ProtectionDomain pd, byte[] b) {
+    public byte[] transform(ClassLoader classLoader, String name, Class<?> clazz, ProtectionDomain protectionDomain, byte[] buf) {
         try {
             Path p = DIR.resolve(name + ".class");
             Files.createDirectories(p.getParent());
-            Files.write(p, b);
+            Files.write(p, buf);
             if (debug)
                 System.out.println("Dumped class " + name);
         } catch (Exception e) {

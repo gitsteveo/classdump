@@ -32,8 +32,8 @@ public final class Dumper implements ClassFileTransformer {
 
     public static void premain(String args, Instrumentation inst) {
         System.out.println("Dumping classes to ".concat(DIR.getAbsolutePath()));
-        boolean b = "debug".equalsIgnoreCase(args);
-        inst.addTransformer(new Dumper(b));
+        boolean debug = "debug".equalsIgnoreCase(args);
+        inst.addTransformer(new Dumper(debug));
 
         //already loaded classes
         for (Class<?> c : inst.getAllLoadedClasses()) {
@@ -48,20 +48,20 @@ public final class Dumper implements ClassFileTransformer {
                         File f = new File(DIR, cls);
                         //noinspection ResultOfMethodCallIgnored ???????? (what)
                         f.getParentFile().mkdirs();
-                        FileOutputStream o = new FileOutputStream(f);
+                        FileOutputStream out = new FileOutputStream(f);
                         try {
                             byte[] buf = new byte[8192];
                             for (int i; (i = in.read(buf)) != -1;)
-                                o.write(buf, 0, i);
+                                out.write(buf, 0, i);
                         } finally {
-                            o.close();
+                            out.close();
                         }
                     } finally {
                         in.close();
                     }
-                    if (b)
+                    if (debug)
                         System.out.println("Dumped class ".concat(name));
-                } else if (b)
+                } else if (debug)
                     System.out.println("Unable to get bytecode for ".concat(name));
             } catch (Exception e) {
                 System.err.println("Unable to dump class ".concat(name));
@@ -71,16 +71,16 @@ public final class Dumper implements ClassFileTransformer {
         }
     }
 
-    public byte[] transform(ClassLoader l, String name, Class<?> c, ProtectionDomain d, byte[] b) {
+    public byte[] transform(ClassLoader classLoader, String name, Class<?> clazz, ProtectionDomain protectionDomain, byte[] buf) {
         try {
             File f = new File(DIR, name.concat(".class"));
             //noinspection ResultOfMethodCallIgnored ???????? (what)
             f.getParentFile().mkdirs();
-            FileOutputStream o = new FileOutputStream(f);
+            FileOutputStream out = new FileOutputStream(f);
             try {
-                o.write(b);
+                out.write(buf);
             } finally {
-                o.close();
+                out.close();
             }
             if (debug)
                 System.out.println("Dumped class ".concat(name));

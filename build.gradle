@@ -1,3 +1,12 @@
+import org.objectweb.asm.*
+
+buildscript {
+    repositories.mavenCentral()
+    dependencies {
+        classpath 'org.ow2.asm:asm:9.7'
+    }
+}
+
 plugins {
     id 'java'
 }
@@ -15,6 +24,16 @@ sourceSets {
 
 compileJava5Java {
     sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_5
+}
+
+tasks.withType(JavaCompile).configureEach {
+    doLast {
+        files(outputs.files).asFileTree.filter { it.name.endsWith '.class' }.each {
+            def writer = new ClassWriter(0)
+            new ClassReader(it.bytes).accept(writer, ClassReader.SKIP_DEBUG)
+            it.bytes = writer.toByteArray()
+        }
+    }
 }
 
 tasks.register('java5Jar', Jar) {
