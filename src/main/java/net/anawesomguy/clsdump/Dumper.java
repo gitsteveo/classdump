@@ -18,19 +18,19 @@ public final class Dumper implements ClassFileTransformer {
     static {
         if (Files.exists(DIR))
             try {
-                try (Stream<Path> s = Files.walk(DIR)) {
-                    s.sorted(Comparator.reverseOrder()).forEach(Dumper::rm);
+                try (Stream<Path> walk = Files.walk(DIR)) {
+                    walk.sorted(Comparator.reverseOrder()).forEach(Dumper::rm);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
     }
 
-    private static void rm(Path p) {
+    private static void rm(Path path) {
         try {
-            Files.delete(p);
+            Files.delete(path);
         } catch (IOException e) {
-            throw new RuntimeException(p.toString(), e);
+            throw new RuntimeException(path.toString(), e);
         }
     }
 
@@ -46,16 +46,16 @@ public final class Dumper implements ClassFileTransformer {
         inst.addTransformer(new Dumper(debug));
 
         //already loaded classes
-        for (Class<?> c : inst.getAllLoadedClasses()) {
-            if (c.isArray())
+        for (Class<?> cls : inst.getAllLoadedClasses()) {
+            if (cls.isArray())
                 continue;
-            String name = c.getName().replace('.', '/');
+            String name = cls.getName().replace('.', '/');
             try {
-                String cls = name + ".class";
-                InputStream in = c.getResourceAsStream(cls.substring(name.lastIndexOf('/') + 1));
+                String clsName = name + ".class";
+                InputStream in = cls.getResourceAsStream(clsName.substring(name.lastIndexOf('/') + 1));
                 if (in != null) {
                     try {
-                        Path path = DIR.resolve(cls);
+                        Path path = DIR.resolve(clsName);
                         Files.createDirectories(path.getParent());
                         Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
                     } finally {
@@ -75,9 +75,9 @@ public final class Dumper implements ClassFileTransformer {
 
     public byte[] transform(ClassLoader classLoader, String name, Class<?> clazz, ProtectionDomain protectionDomain, byte[] buf) {
         try {
-            Path p = DIR.resolve(name + ".class");
-            Files.createDirectories(p.getParent());
-            Files.write(p, buf);
+            Path path = DIR.resolve(name + ".class");
+            Files.createDirectories(path.getParent());
+            Files.write(path, buf);
             if (debug)
                 System.out.println("Dumped class " + name);
         } catch (Exception e) {

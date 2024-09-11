@@ -21,13 +21,13 @@ public final class Dumper implements ClassFileTransformer {
         this.debug = debug;
     }
 
-    private static void rm(File f) {
-        if (f.isDirectory())
+    private static void rm(File file) {
+        if (file.isDirectory())
             //noinspection DataFlowIssue
-            for (File c : f.listFiles())
-                rm(c);
-        if (!f.delete())
-            throw new RuntimeException("Failed to delete: ".concat(f.getPath()));
+            for (File f : file.listFiles())
+                rm(f);
+        if (!file.delete())
+            throw new RuntimeException("Failed to delete: ".concat(file.getPath()));
     }
 
     public static void premain(String args, Instrumentation inst) {
@@ -45,10 +45,10 @@ public final class Dumper implements ClassFileTransformer {
                 InputStream in = c.getResourceAsStream(cls.substring(name.lastIndexOf('/') + 1));
                 if (in != null) {
                     try {
-                        File f = new File(DIR, cls);
+                        File file = new File(DIR, cls);
                         //noinspection ResultOfMethodCallIgnored ???????? (what)
-                        f.getParentFile().mkdirs();
-                        FileOutputStream out = new FileOutputStream(f);
+                        file.getParentFile().mkdirs();
+                        FileOutputStream out = new FileOutputStream(file);
                         try {
                             byte[] buf = new byte[8192];
                             for (int i; (i = in.read(buf)) != -1;)
@@ -73,10 +73,10 @@ public final class Dumper implements ClassFileTransformer {
 
     public byte[] transform(ClassLoader classLoader, String name, Class<?> clazz, ProtectionDomain protectionDomain, byte[] buf) {
         try {
-            File f = new File(DIR, name.concat(".class"));
+            File file = new File(DIR, name.concat(".class"));
             //noinspection ResultOfMethodCallIgnored ???????? (what)
-            f.getParentFile().mkdirs();
-            FileOutputStream out = new FileOutputStream(f);
+            file.getParentFile().mkdirs();
+            FileOutputStream out = new FileOutputStream(file);
             try {
                 out.write(buf);
             } finally {
