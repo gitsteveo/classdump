@@ -31,7 +31,7 @@ jobs:
       - name: build
         run: |
           chmod +x ./gradlew
-          ./gradlew build
+          ./gradlew jar
       - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -73,8 +73,9 @@ jobs:
         with:
           path: artifacts/
           merge-multiple: true
-      - id: names
+      - id: values
         run: |
+          echo -e "BODY=${{ inputs.release_body }}" >> $GITHUB_OUTPUT
           echo "FILES=$( ls -1 )" >> $GITHUB_OUTPUT
           echo "TAG_NAME=$( ls -AU artifacts | head -1 )" >> $GITHUB_OUTPUT
       - name: create release
@@ -82,5 +83,5 @@ jobs:
         with:
           name: ${{ inputs.release_name }}
           body: ${{ inputs.release_body }}
-          files: ${{ steps.names.outputs.FILES }}
-          tag_name: ${{ steps.names.outputs.TAG_NAME }}
+          files: ${{ steps.values.outputs.FILES }}
+          tag_name: ${{ steps.values.outputs.TAG_NAME }}
