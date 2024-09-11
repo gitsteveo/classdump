@@ -18,9 +18,9 @@ public final class Dumper implements ClassFileTransformer {
     static {
         if (Files.exists(DIR))
             try {
-                Stream<Path> s = Files.walk(DIR);
-                s.sorted(Comparator.reverseOrder()).forEach(Dumper::rm);
-                s.close();
+                try (Stream<Path> s = Files.walk(DIR)) {
+                    s.sorted(Comparator.reverseOrder()).forEach(Dumper::rm);
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

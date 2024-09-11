@@ -43,7 +43,6 @@ tasks.register('runMainTest', JavaExec) {
 tasks.register('runJava5Test', JavaExec) {
     dependsOn java5Jar
     group 'verification'
-    println sourceSets.test.runtimeClasspath
     classpath sourceSets.test.runtimeClasspath
     jvmArgs '-javaagent:' + java5Jar.archiveFile.get() + '=debug'
     mainClass = 'net.anawesomguy.clsdump.test.Main'
