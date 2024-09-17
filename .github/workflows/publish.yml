@@ -76,12 +76,12 @@ jobs:
       - id: values
         run: |
           echo -e "BODY=${{ inputs.release_body }}" >> $GITHUB_OUTPUT
-          echo "FILES=$( ls -1 )" >> $GITHUB_OUTPUT
-          echo "TAG_NAME=$( ls -AU artifacts | head -1 )" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$( ls -p build/libs/ | grep -v / | head -1 | sed -e 's/\..*$//' )" >> $GITHUB_OUTPUT
       - name: create release
-        uses: softprops/action-gh-release@v2
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: ${{ inputs.release_name }}
-          body: ${{ inputs.release_body }}
-          files: ${{ steps.values.outputs.FILES }}
+          release_name: ${{ inputs.release_name }}
+          body: ${{ steps.values.outputs.BODY }}
           tag_name: ${{ steps.values.outputs.TAG_NAME }}
+          file: artifacts/*
+          file_glob: true
