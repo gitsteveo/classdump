@@ -1,59 +1,52 @@
-package net.anawesomguy.clsdump;
+package net.anawesomguy.methodintercept;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.ProtectionDomain;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
 
-public final class Dumper implements ClassFileTransformer {
-    private static final String TARGET_METHOD_NAME = "yourPrivateMethod"; // Replace with your private method name
-    private static final String TARGET_METHOD_DESC = "()V"; // Replace with your method descriptor
-    private static final String STATIC_RESPONSE = "Static Response"; // The response you want to return
+public final class MethodInterceptor implements ClassFileTransformer {
+    private final String targetClassName;
+    private final String targetMethodName;
+
+    public MethodInterceptor(String targetClassName, String targetMethodName) {
+        this.targetClassName = targetClassName;
+        this.targetMethodName = targetMethodName;
+    }
 
     public static void premain(String args, Instrumentation inst) {
-        System.out.println("Intercepting method calls");
-        inst.addTransformer(new Dumper());
-    }
-
-    @Override
-    public byte[] transform(ClassLoader classLoader, String name, Class<?> clazz, ProtectionDomain protectionDomain, byte[] buf) {
-        if (name.equals("your/package/ClassName")) { // Replace with the full class name containing the target method
-            return interceptMethod(buf);
+        String[] parts = args.split(",");
+        if (parts.length != 2) {
+            System.err.println("Usage: -javaagent:agent.jar=<className>,<methodName>");
+            return;
         }
-        return null; // No transformation for other classes
+        String className = parts[0];
+        String methodName = parts[1];
+        System.out.println("Intercepting method " + methodName + " in class " + className);
+        inst.addTransformer(new MethodInterceptor(className, methodName));
     }
 
-    private byte[] interceptMethod(byte[] classfileBuffer) {
-        ClassReader classReader = new ClassReader(classfileBuffer);
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor classVisitor = new ClassVisitor(Opcodes.ASM9, classWriter) {
-            @Override
-            public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
-                if (name.equals(TARGET_METHOD_NAME) && descriptor.equals(TARGET_METHOD_DESC)) {
-                    return new MethodVisitor(Opcodes.ASM9, mv) {
-                        @Override
-                        public void visitCode() {
-                            super.visitCode();
-                            // Return a static response
-                            mv.visitLdcInsn(STATIC_RESPONSE);
-                            mv.visitInsn(Opcodes.POP); // Pop the response if not used
-                            mv.visitInsn(Opcodes.RETURN); // Return from the method
-                        }
-                    };
-                }
-                return mv; // No modification for other methods
-            }
-        };
-        classReader.accept(classVisitor, 0);
-        return classWriter.toByteArray();
+    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                            ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        String dotClassName = className.replace('/', '.');
+        if (!dotClassName.equals(targetClassName)) {
+            return null;
+        }
+
+        try {
+            ClassPool cp = ClassPool.getDefault();
+            CtClass cc = cp.get(dotClassName);
+            CtMethod method = cc.getDeclaredMethod(targetMethodName);
+
+            method.setBody("{ /* no-op */ }");
+
+            System.out.println("Intercepted method " + targetMethodName + " in class " + dotClassName);
+            return cc.toBytecode();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
